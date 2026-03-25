@@ -62,6 +62,22 @@ class PortfolioController extends Controller
         return PortfolioPostResource::make($post)->response();
     }
 
+    public function reorder(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'ids'   => ['required', 'array'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $user = $request->user();
+
+        foreach ($data['ids'] as $index => $id) {
+            $user->portfolioPosts()->where('id', $id)->update(['order' => $index]);
+        }
+
+        return response()->json(null, 204);
+    }
+
     public function destroy(Request $request, int $id): JsonResponse
     {
         $request->user()->portfolioPosts()->findOrFail($id)->delete();

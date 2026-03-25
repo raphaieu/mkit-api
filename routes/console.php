@@ -9,5 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Sync all creators' Instagram data daily
-// Schedule::command('instagram:sync-all')->daily();
-// TODO: implement SyncAllCreatorsJob and uncomment
+Schedule::job(new \App\Jobs\SyncAllCreatorsJob())->daily();

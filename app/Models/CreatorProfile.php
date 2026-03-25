@@ -9,6 +9,8 @@ class CreatorProfile extends Model
 {
     protected $fillable = [
         'user_id',
+        'display_name',
+        'bio',
         'contact_email',
         'contact_whatsapp',
         'city',

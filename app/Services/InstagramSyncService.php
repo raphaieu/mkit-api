@@ -170,8 +170,8 @@ class InstagramSyncService
 
     private function persistProfile(InstagramProfile $profile, array $data): void
     {
+        // instagram_id is a stable identifier set on profile creation — never overwrite it.
         $profile->update([
-            'instagram_id'        => $data['id'],
             'username'            => $data['username'],
             'full_name'           => $data['name'] ?? $profile->full_name,
             'biography'           => $data['biography'] ?? null,
@@ -185,9 +185,17 @@ class InstagramSyncService
     /**
      * Attempt to sync insights. Returns true on success, false when the
      * instagram_manage_insights permission is not yet available (Phase 2).
+     *
+     * Skipped when INSTAGRAM_TEST_TOKEN is set: the test token belongs to a
+     * specific account, so using it with a different instagram_id would return
+     * a 400 from the insights endpoint.
      */
     private function syncInsights(InstagramProfile $profile, string $token): bool
     {
+        if (filled(config('services.instagram.test_token'))) {
+            return false;
+        }
+
         $insight = (new FetchInstagramInsightsAction())->execute($profile, $token);
 
         return $insight !== null;

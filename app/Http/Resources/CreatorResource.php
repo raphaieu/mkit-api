@@ -27,12 +27,15 @@ class CreatorResource extends JsonResource
 
     private function instagramData(mixed $profile): array
     {
-        $posts = $profile->relationLoaded('posts') ? $profile->posts : collect();
+        $posts        = $profile->relationLoaded('posts') ? $profile->posts : collect();
+        $creatorProfile = $this->whenLoaded('creatorProfile');
 
         return [
             'username'            => $profile->username,
-            'full_name'           => $profile->full_name,
-            'biography'           => $profile->biography,
+            // display_name / bio on creator_profile override the Instagram values
+            // so the creator can personalise their bio site independently of the API sync.
+            'full_name'           => ($creatorProfile?->display_name) ?? $profile->full_name,
+            'biography'           => ($creatorProfile?->bio) ?? $profile->biography,
             'profile_picture_url' => $profile->profile_picture_url,
             'followers_count'     => $profile->followers_count,
             'following_count'     => $profile->following_count,

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CreatorController;
 use App\Http\Controllers\Api\CreatorLinkController;
 use App\Http\Controllers\Api\CreatorProfileController;
@@ -17,6 +18,9 @@ Route::get('/creators/{handle}', [CreatorController::class, 'show'])
 // ── Authenticated ─────────────────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function (): void {
 
+    // Auth
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+
     // User
     Route::get('/me', [ProfileController::class, 'show']);
     Route::put('/me', [ProfileController::class, 'update']);
@@ -28,18 +32,21 @@ Route::middleware('auth:sanctum')->group(function (): void {
     // Experiences with brands (portfolio)
     Route::get('/me/portfolio', [PortfolioController::class, 'index']);
     Route::post('/me/portfolio', [PortfolioController::class, 'store']);
+    Route::post('/me/portfolio/reorder', [PortfolioController::class, 'reorder']);
     Route::put('/me/portfolio/{id}', [PortfolioController::class, 'update']);
     Route::delete('/me/portfolio/{id}', [PortfolioController::class, 'destroy']);
 
     // Partner brands carousel
     Route::get('/me/partner-brands', [PartnerBrandController::class, 'index']);
     Route::post('/me/partner-brands', [PartnerBrandController::class, 'store']);
+    Route::post('/me/partner-brands/reorder', [PartnerBrandController::class, 'reorder']);
     Route::put('/me/partner-brands/{id}', [PartnerBrandController::class, 'update']);
     Route::delete('/me/partner-brands/{id}', [PartnerBrandController::class, 'destroy']);
 
     // Custom links
     Route::get('/me/links', [CreatorLinkController::class, 'index']);
     Route::post('/me/links', [CreatorLinkController::class, 'store']);
+    Route::post('/me/links/reorder', [CreatorLinkController::class, 'reorder']);
     Route::put('/me/links/{id}', [CreatorLinkController::class, 'update']);
     Route::delete('/me/links/{id}', [CreatorLinkController::class, 'destroy']);
 

@@ -46,6 +46,22 @@ class PartnerBrandController extends Controller
         return PartnerBrandResource::make($brand)->response();
     }
 
+    public function reorder(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'ids'   => ['required', 'array'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $user = $request->user();
+
+        foreach ($data['ids'] as $index => $id) {
+            $user->partnerBrands()->where('id', $id)->update(['order' => $index]);
+        }
+
+        return response()->json(null, 204);
+    }
+
     public function destroy(Request $request, int $id): JsonResponse
     {
         $request->user()->partnerBrands()->findOrFail($id)->delete();

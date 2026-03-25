@@ -50,6 +50,22 @@ class CreatorLinkController extends Controller
         return CreatorLinkResource::make($link)->response();
     }
 
+    public function reorder(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'ids'   => ['required', 'array'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $user = $request->user();
+
+        foreach ($data['ids'] as $index => $id) {
+            $user->creatorLinks()->where('id', $id)->update(['order' => $index]);
+        }
+
+        return response()->json(null, 204);
+    }
+
     public function destroy(Request $request, int $id): JsonResponse
     {
         $request->user()->creatorLinks()->findOrFail($id)->delete();

@@ -21,6 +21,8 @@ class CreatorProfileController extends Controller
     public function update(Request $request): JsonResponse
     {
         $data = $request->validate([
+            'display_name'     => ['nullable', 'string', 'max:255'],
+            'bio'              => ['nullable', 'string', 'max:1000'],
             'contact_email'    => ['nullable', 'email', 'max:255'],
             'contact_whatsapp' => ['nullable', 'string', 'max:30'],
             'city'             => ['nullable', 'string', 'max:100'],

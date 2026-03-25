@@ -55,6 +55,17 @@ class FetchInstagramInsightsAction
             throw $e;
         }
 
+        // API returned an empty payload — no permission or no data yet; skip to
+        // avoid persisting a row of zeros that would mislead the frontend.
+        if (empty($performanceData)) {
+            Log::info('Instagram insights skipped: empty performance data', [
+                'instagram_profile_id' => $profile->id,
+                'username'             => $profile->username,
+            ]);
+
+            return null;
+        }
+
         // Demographic metrics are best-effort: "Not enough users" (3006) and
         // similar data-threshold errors return empty array instead of aborting.
         $genderAge = $this->fetchDemographicBreakdownSafe($profile->instagram_id, $token, 'age,gender');
@@ -63,20 +74,22 @@ class FetchInstagramInsightsAction
 
         $parsed = $this->parsePerformanceMetrics($performanceData);
 
-        return InstagramInsight::create([
-            'instagram_profile_id'     => $profile->id,
-            'synced_at'                => now(),
-            'accounts_engaged_28d'     => $parsed['accounts_engaged']['total'],
-            'total_interactions_28d'   => $parsed['total_interactions']['total'],
-            'reach_28d'                => $parsed['reach']['total'],
-            'profile_views_28d'        => $parsed['profile_views']['total'],
-            'follower_count_delta_28d' => $parsed['follower_count']['delta'],
-            'reach_series'             => $parsed['reach']['series'],
-            'accounts_engaged_series'  => $parsed['accounts_engaged']['series'],
-            'audience_gender_age'      => $this->parseDemographicBreakdown($genderAge, ['age', 'gender']),
-            'audience_country'         => $this->parseDemographicBreakdown($country, ['country']),
-            'audience_city'            => $this->parseDemographicBreakdown($city, ['city']),
-        ]);
+        return InstagramInsight::updateOrCreate(
+            ['instagram_profile_id' => $profile->id],
+            [
+                'synced_at'                => now(),
+                'accounts_engaged_28d'     => $parsed['accounts_engaged']['total'],
+                'total_interactions_28d'   => $parsed['total_interactions']['total'],
+                'reach_28d'                => $parsed['reach']['total'],
+                'profile_views_28d'        => $parsed['profile_views']['total'],
+                'follower_count_delta_28d' => $parsed['follower_count']['delta'],
+                'reach_series'             => $parsed['reach']['series'],
+                'accounts_engaged_series'  => $parsed['accounts_engaged']['series'],
+                'audience_gender_age'      => $this->parseDemographicBreakdown($genderAge, ['age', 'gender']),
+                'audience_country'         => $this->parseDemographicBreakdown($country, ['country']),
+                'audience_city'            => $this->parseDemographicBreakdown($city, ['city']),
+            ]
+        );
     }
 
     // -------------------------------------------------------------------------

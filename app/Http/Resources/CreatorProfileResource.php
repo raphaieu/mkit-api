@@ -10,6 +10,8 @@ class CreatorProfileResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'display_name'     => $this->display_name,
+            'bio'              => $this->bio,
             'contact_email'    => $this->contact_email,
             'contact_whatsapp' => $this->contact_whatsapp,
             'city'             => $this->city,
