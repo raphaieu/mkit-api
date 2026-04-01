@@ -41,12 +41,7 @@ jobs:
             php artisan view:cache
 
             echo "→ Fixing permissions..."
-            sudo chown -R www:www ~/mkit-api/storage
-            sudo chown -R www:www ~/mkit-api/bootstrap/cache
             sudo chmod -R 775 ~/mkit-api/storage
             sudo chmod -R 775 ~/mkit-api/bootstrap/cache
-
-            echo "→ Reloading PHP-FPM..."
-            sudo systemctl reload php8.3-fpm
-
+            
             echo "✅ mkit-api deployed successfully!"
