@@ -41,7 +41,7 @@ jobs:
             php artisan view:cache
 
             echo "→ Fixing permissions..."
-            sudo chmod -R 775 ~/mkit-api/storage
-            sudo chmod -R 775 ~/mkit-api/bootstrap/cache
-            
+            chmod -R 775 ~/mkit-api/storage
+            chmod -R 775 ~/mkit-api/bootstrap/cache
+
             echo "✅ mkit-api deployed successfully!"
