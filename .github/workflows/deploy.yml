@@ -1,0 +1,51 @@
+name: Deploy mkit-api
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 77.37.68.36
+          username: deploy
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            cd ~/mkit-api
+
+            echo "→ Pulling latest code..."
+            git pull origin main
+
+            echo "→ Installing dependencies..."
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "→ Clearing caches..."
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+
+            echo "→ Running migrations..."
+            php artisan migrate --force
+
+            echo "→ Caching config/routes/views..."
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "→ Fixing permissions..."
+            sudo chown -R www:www ~/mkit-api
+            sudo chmod -R 775 ~/mkit-api/storage
+            sudo chmod -R 775 ~/mkit-api/bootstrap/cache
+
+            echo "→ Reloading PHP-FPM..."
+            sudo systemctl reload php8.3-fpm
+
+            echo "✅ mkit-api deployed successfully!"
