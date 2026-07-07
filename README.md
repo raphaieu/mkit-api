@@ -129,6 +129,97 @@ composer run dev
 
 Esse comando sobe servidor, fila, logs e Vite em paralelo.
 
+## Deploy com Docker / Coolify
+
+A stack de produção usa `docker-compose.yml` com os serviços:
+
+| Serviço | Função |
+|---|---|
+| `nginx` | Proxy HTTP público (porta exposta ao Coolify) |
+| `app` | PHP-FPM (Laravel) |
+| `queue` | Worker de filas Redis |
+| `scheduler` | `php artisan schedule:work` (sync diário) |
+| `mysql` | Banco MySQL 8 com volume persistente |
+| `redis` | Cache, sessão e filas |
+
+### 1) Variáveis de ambiente
+
+Crie um `.env` na raiz do repositório (Coolify: aba **Environment Variables**) com, no mínimo:
+
+```env
+APP_KEY=base64:... # gere com: php artisan key:generate --show
+APP_URL=https://api.mkit.com.br
+FRONTEND_URL=https://mkit.com.br
+
+DB_DATABASE=mkit
+DB_USERNAME=mkit
+DB_PASSWORD=senha_forte
+MYSQL_ROOT_PASSWORD=senha_root_forte
+
+INSTAGRAM_CLIENT_ID=
+INSTAGRAM_CLIENT_SECRET=
+INSTAGRAM_REDIRECT_URI=https://api.mkit.com.br/auth/instagram/callback
+
+SANCTUM_STATEFUL_DOMAINS=mkit.com.br,www.mkit.com.br
+CORS_ALLOWED_ORIGINS=https://mkit.com.br
+SESSION_DOMAIN=.mkit.com.br
+
+RUN_MIGRATIONS=true
+APP_PORT=8080
+```
+
+> `DB_HOST` e `REDIS_HOST` já estão fixos no compose (`mysql` e `redis`).
+
+### 2) Subir localmente (teste)
+
+```bash
+docker compose up -d --build
+```
+
+API disponível em `http://localhost:8080` (ou a porta definida em `APP_PORT`).
+
+### 3) Configurar no Coolify
+
+1. Crie um novo recurso **Docker Compose** apontando para este repositório.
+2. Defina o domínio `api.mkit.com.br` no serviço **`nginx`** (não no `app`).
+3. Configure as variáveis de ambiente listadas acima.
+4. Faça o deploy.
+
+### 4) Importar banco da hospedagem antiga
+
+Com a stack rodando e o dump SQL em mãos:
+
+```bash
+# Copiar dump para o container (se necessário)
+docker compose cp ./backup-mkit.sql mysql:/tmp/backup-mkit.sql
+
+# Importar
+docker compose exec mysql sh -c \
+  'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" < /tmp/backup-mkit.sql'
+```
+
+Alternativa direta pelo host:
+
+```bash
+docker compose exec -T mysql mysql -u mkit -p mkit < backup-mkit.sql
+```
+
+Após importar, defina `RUN_MIGRATIONS=false` se não quiser rodar migrations automaticamente no próximo deploy (recomendado após migração inicial).
+
+### 5) Comandos úteis
+
+```bash
+# Logs
+docker compose logs -f app queue scheduler
+
+# Artisan manual
+docker compose exec app php artisan migrate:status
+docker compose exec app php artisan instagram:sync
+
+# Shell no container
+docker compose exec app sh
+```
+
 ## Rotinas e sincronização
 
 - Job diário configurado em `routes/console.php`:
