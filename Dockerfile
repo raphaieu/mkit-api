@@ -63,7 +63,7 @@ COPY . .
 
 RUN composer dump-autoload --optimize --classmap-authoritative \
     && mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+    && chown -R www-data:www-data storage bootstrap/cache public
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
