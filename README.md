@@ -165,10 +165,9 @@ CORS_ALLOWED_ORIGINS=https://mkit.com.br
 SESSION_DOMAIN=.mkit.com.br
 
 RUN_MIGRATIONS=true
-APP_PORT=8080
 ```
 
-> `DB_HOST` e `REDIS_HOST` já estão fixos no compose (`mysql` e `redis`).
+> No Coolify, **não** exponha portas no host (`ports:`). O proxy do Coolify roteia pelo domínio via rede interna do Docker. O compose já usa `expose` para isso.
 
 ### 2) Subir localmente (teste)
 
@@ -176,7 +175,13 @@ APP_PORT=8080
 docker compose up -d --build
 ```
 
-API disponível em `http://localhost:8080` (ou a porta definida em `APP_PORT`).
+Para testar no host, publique a porta manualmente:
+
+```bash
+docker compose run -d -p 8080:80 --service-ports nginx
+```
+
+Ou crie um `docker-compose.override.yml` local com `ports: ["8080:80"]` no serviço `nginx`.
 
 ### 3) Configurar no Coolify
 
