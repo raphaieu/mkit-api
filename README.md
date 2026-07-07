@@ -167,6 +167,8 @@ SESSION_DOMAIN=.mkit.com.br
 RUN_MIGRATIONS=true
 ```
 
+> **Obrigatório:** `APP_KEY` deve estar definida no Coolify. Sem ela, rotas web/OAuth retornam 500 (o endpoint `/up` continua 200 e pode mascarar o problema).
+
 > No Coolify, **não** exponha portas no host (`ports:`). O proxy do Coolify roteia pelo domínio via rede interna do Docker. O compose já usa `expose` para isso.
 
 ### 2) Subir localmente (teste)
@@ -224,6 +226,13 @@ docker compose exec app php artisan instagram:sync
 # Shell no container
 docker compose exec app sh
 ```
+
+### 6) Troubleshooting — erro 500
+
+1. Confirme `APP_KEY` nas variáveis de ambiente do Coolify.
+2. Veja os logs: `docker compose logs -f app nginx` (no servidor Coolify).
+3. Confira credenciais `DB_*` — se o volume MySQL foi criado com outra senha no primeiro deploy, recrie o volume ou alinhe as senhas.
+4. Após importar dump, use `RUN_MIGRATIONS=false` se não quiser rodar migrations automáticas.
 
 ## Rotinas e sincronização
 

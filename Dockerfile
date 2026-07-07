@@ -7,6 +7,7 @@ WORKDIR /var/www/html
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
+    gosu \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libpng-dev \
@@ -66,10 +67,9 @@ RUN composer dump-autoload --optimize --classmap-authoritative \
     && chown -R www-data:www-data storage bootstrap/cache public
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/healthcheck.sh /usr/local/bin/healthcheck.sh
 
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-USER www-data
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/healthcheck.sh
 
 EXPOSE 9000
 
